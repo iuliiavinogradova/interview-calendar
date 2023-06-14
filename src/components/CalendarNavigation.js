@@ -3,7 +3,7 @@ import styled from 'styled-components';
 
 const NavigationRow = styled.tr`
   position: sticky;
-  top: 64px;
+  top: 82px;
   background-color: #f6f6f6;
   z-index: 1;
   border: none;
@@ -43,14 +43,6 @@ const NavigationCell = styled.td`
   }
 `
 
-// const NavigationButtonContainer = styled.div`
-//   flex: 1;
-//   text-align: left;
-
-//     &:last-child {
-//     text-align: right;
-//   }
-// `
 const NavigationButtonContainer = styled.div`
 flex: 1;
 text-align: ${({ isLastChild }) => (isLastChild ? 'right' : 'left')};;`

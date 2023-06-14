@@ -32,13 +32,14 @@ const TableRow = styled.tr`
 const Row = styled.tr`
 `
 const Weekday = styled.div`
+  font-size: x-small;
+  padding: 15px;
 `
 
 const TableHeaderCell = styled.th`
   padding: 8px;
   text-align: center;
   background-color: #f6f6f6;
-  font-weight: bold;
   border: none;
   position: sticky;
 
@@ -66,9 +67,7 @@ const TableHeaderCell = styled.th`
 
 
 const TimeCell = styled.td`
-  font-weight: bold;
   color: #cecece;
-  border: 1px solid #cecece;
   padding: 8px;
   text-align: center;
 `
@@ -99,111 +98,112 @@ const WeekdayCell = styled.td`
 
 const DateHighlight = styled.div`
   /* CSS styles for .table-container .date.highlighted */
-  &.highlighted {
-    color: white;
-    background-color: #ff3131;
     border-radius: 50%;
-    width: 30px;
-    height: 30px;
+    width: 25px;
+    height: 25px;
     display: flex;
     align-items: center;
     justify-content: center;
     text-align: center;
     line-height: 30px;
     margin: 0 auto; 
+  &.highlighted {
+    color: white;
+    background-color: #ff3131;
+
   }
 
 `;
 
 const CalendarTable = ({
-    daysOfWeek,
-    timeSlots,
-    events,
-    currentDate,
-    selectedTimeSlot,
-    selectedEventDate,
-    handlePreviousWeek,
-    handleNextWeek,
-    handleTimeSlotClick,
+  daysOfWeek,
+  timeSlots,
+  events,
+  currentDate,
+  selectedTimeSlot,
+  selectedEventDate,
+  handlePreviousWeek,
+  handleNextWeek,
+  handleTimeSlotClick,
 }) => {
 
 
 
-    const weekDay = currentDate.getDay();
-    const month = currentDate.getMonth();
-    const year = currentDate.getFullYear();
+  const weekDay = currentDate.getDay();
+  const month = currentDate.getMonth();
+  const year = currentDate.getFullYear();
 
-    const isCurrentMonth = currentDate.getMonth() === new Date().getMonth();
+  const isCurrentMonth = currentDate.getMonth() === new Date().getMonth();
 
-    const DayHeaderCell = ({ day, dayOfMonth }) => (
-        <TableHeaderCell className="weekday sticky">
-            <Weekday>{day}</Weekday>
-            <DateHighlight className={isCurrentMonth && dayOfMonth === new Date().getDate() ? "highlighted" : ""}>
-                {dayOfMonth}
-            </DateHighlight>
-        </TableHeaderCell>
+  const DayHeaderCell = ({ day, dayOfMonth }) => (
+    <TableHeaderCell className="weekday sticky">
+      <Weekday>{day}</Weekday>
+      <DateHighlight className={isCurrentMonth && dayOfMonth === new Date().getDate() ? "highlighted" : ""}>
+        {dayOfMonth}
+      </DateHighlight>
+    </TableHeaderCell>
+  );
+
+  const DayCell = ({ time, offset, formattedDate }) => {
+    const eventTimes = events[formattedDate] || [];
+    let classNameCell = "weekday-cell";
+    if (selectedTimeSlot === time && selectedEventDate === formattedDate) {
+      classNameCell = "weekday-cell selected";
+    } else if (eventTimes.includes(time)) {
+      classNameCell = "weekday-cell event";
+    }
+
+    return (
+      <WeekdayCell
+        className={classNameCell}
+        onClick={() => handleTimeSlotClick(time, formattedDate)}
+      />
     );
+  };
 
-    const DayCell = ({ time, offset, formattedDate }) => {
-        const eventTimes = events[formattedDate] || [];
-        let classNameCell = "weekday-cell";
-        if (eventTimes.includes(time)) {
-            classNameCell = "weekday-cell event";
-        } else if (selectedTimeSlot === time && selectedEventDate === formattedDate) {
-            classNameCell = "weekday-cell selected";
-        }
+  const dayItems = daysOfWeek.map((day, index) => {
+    const offset = (index + 1) - weekDay;
+    const date = new Date(year, month, currentDate.getDate() + offset);
+    const dayOfMonth = date.getDate();
 
-        return (
-            <WeekdayCell
-                className={classNameCell}
-                onClick={() => handleTimeSlotClick(time, formattedDate)}
-            />
-        );
-    };
+    return <DayHeaderCell key={index} day={day} dayOfMonth={dayOfMonth} />;
+  });
 
-    const dayItems = daysOfWeek.map((day, index) => {
-        const offset = (index + 1) - weekDay;
-        const date = new Date(year, month, currentDate.getDate() + offset);
-        const dayOfMonth = date.getDate();
+  const tableRows = timeSlots.map((time, index) => {
+    const timeSlotCells = daysOfWeek.map((day, index) => {
+      const offset = (index + 2) - weekDay;
+      const date = new Date(year, month, currentDate.getDate() + offset);
+      const formattedDate = date.toISOString().split("T")[0];
 
-        return <DayHeaderCell key={index} day={day} dayOfMonth={dayOfMonth} />;
-    });
-
-    const tableRows = timeSlots.map((time, index) => {
-        const timeSlotCells = daysOfWeek.map((day, index) => {
-            const offset = (index + 2) - weekDay;
-            const date = new Date(year, month, currentDate.getDate() + offset);
-            const formattedDate = date.toISOString().split("T")[0];
-
-            return <DayCell key={index} time={time} offset={offset} formattedDate={formattedDate} />;
-        });
-
-        return (
-            <Row key={index}>
-                <TimeCell>{time}</TimeCell>
-                {timeSlotCells}
-            </Row>
-        );
+      return <DayCell key={index} time={time} offset={offset} formattedDate={formattedDate} />;
     });
 
     return (
-        <TableContainer>
-            <Table>
-                <TableHeader>
-                    <TableRow>
-                        <TableHeaderCell className="sticky" />
-                        {dayItems}
-                    </TableRow>
-                    <CalendarNavigation
-                        currentDate={currentDate}
-                        handlePreviousWeek={handlePreviousWeek}
-                        handleNextWeek={handleNextWeek}
-                    />
-                </TableHeader>
-                <TableBody>{tableRows}</TableBody>
-            </Table>
-        </TableContainer>
+      <Row key={index}>
+        <TimeCell>{time}</TimeCell>
+        {timeSlotCells}
+      </Row>
     );
+  });
+
+  return (
+    <TableContainer>
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHeaderCell className="sticky" />
+            {dayItems}
+          </TableRow>
+          <CalendarNavigation
+            currentDate={currentDate}
+            handlePreviousWeek={handlePreviousWeek}
+            handleNextWeek={handleNextWeek}
+          />
+        </TableHeader>
+        <TableBody>{tableRows}</TableBody>
+      </Table>
+    </TableContainer>
+  );
 };
 
 export default CalendarTable;
